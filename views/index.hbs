@@ -96,6 +96,23 @@ function draw(){
 
   node.exit().remove()
 
+  node.append("text")
+    .attr("class", "node_text")
+    .attr("id", function(d){ return d.name; })
+    .attr("dx", function(d) { 
+      if (d.type == "keyword") { return 15; } 
+      else { return 22; }
+     })
+    .attr("dy", 3)
+    .attr("display", function(d) { 
+      if (d.type == "root") { return "block"; } 
+      return "none";
+     })
+    .style("font-size", function(d) { 
+      if (d.type == "root") { return 15; } 
+     })
+    .text(function(d)  { return d.name })
+
   node.on("mouseover", function (d) {
     
     var neighbours = [];
@@ -180,26 +197,10 @@ function draw(){
         //   })
       })
 
-
-  node.append("text")
-      .attr("class", "node_text")
-      .attr("id", function(d){ return d.name; })
-      .attr("dx", function(d) { 
-        if (d.type == "keyword") { return 15; } 
-        else { return 22; }
-       })
-      .attr("dy", 3)
-      .attr("display", function(d) { 
-        if (d.type == "keyword") { return "none"; } 
-       })
-      .style("font-size", function(d) { 
-        if (d.type == "root") { return 15; } 
-       })
-      .text(function(d)  { return d.name })
-
   node.on("click", function(d){
-      console.log(d);
-      //showNeighbors(d);
+    if (d.url) {
+      window.open(d.url);
+    }
   });
 
   simulation
@@ -252,7 +253,8 @@ function createNodes(json){
         "id": _nodes.length,
         "name": films[i].title,
         "type": "film",
-        "keywords": films[i].tags.split(", ")
+        "keywords": films[i].tags.split(", "),
+        "url": films[i].url
       };
       
       _nodes.push(node);
