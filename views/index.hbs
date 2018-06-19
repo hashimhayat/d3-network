@@ -191,7 +191,9 @@ function draw(){
       .transition()
       .text(function(d){ return d.name; })
       .style("font-size","12px")
-      .style("display", "none")
+      .style("display", function(d) {
+        if (d.type != "root") { return "none" }
+      })
       // .attr("dx", function(d) { 
       //   if (d.type == "keyword") { return 20; } 
       //   else { return 22; }
