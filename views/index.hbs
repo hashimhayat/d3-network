@@ -61,7 +61,7 @@ var nodes;
 var data;
 var neighbours = [];
 
-var node_size = 40;
+var node_size = 50;
 
 d3.json("/data/films.json", function(error, json) {
   if (error) throw error;
@@ -114,11 +114,11 @@ function draw(){
     .attr("dx", function(d) { 
       if (d.type == "keyword") { return 15; } 
       else if (d.type == "root") { return 20; }
-      else { return 40; }
+      else { return 50; }
      })
     .attr("dy", function(d) { 
       if (d.type == "keyword") { return 4; } 
-      else if (d.type == "film") { return 25; }
+      else if (d.type == "film") { return 30; }
       else if (d.type == "root") { return 4; }
      })
     .style("display", function(d) { 
@@ -215,19 +215,19 @@ function draw(){
         else { return '/data/circle.png'; }
        })
       .attr("x", function(d) { 
-        if (d.type == "keyword") { return -(node_size/4); } 
+        if (d.type == "keyword") { return -(node_size/6); } 
         else { return -(node_size/2); }
        })
       .attr("y", function(d) { 
-        if (d.type == "keyword") { return -(node_size/4); } 
+        if (d.type == "keyword") { return -(node_size/6); } 
         else { return -(node_size/2); }
        })
       .attr("width", function(d) { 
-        if (d.type == "keyword") { return node_size/2; } 
+        if (d.type == "keyword") { return node_size/3; } 
         else { return node_size; }
        })
       .attr("height", function(d) { 
-        if (d.type == "keyword") { return node_size/2; } 
+        if (d.type == "keyword") { return node_size/3; } 
         else { return node_size; }
        })
       .attr("opacity", function(d) { 
@@ -277,7 +277,7 @@ function draw(){
     node.attr("transform", function(d) { 
 
       if (d.type == "film") {
-        return "translate(" + (d.x - 20) + "," + (d.y - 20) + ")"; 
+        return "translate(" + (d.x - 25) + "," + (d.y - 25) + ")"; 
       } else {
         return "translate(" + d.x + "," + d.y + ")"; 
       }
