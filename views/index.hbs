@@ -20,11 +20,17 @@
   cursor: pointer;
 }
 
+
+.logo {
+  border-radius: 50%;
+}
+
 </style>
 <body>
   <div class="network"> </div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="/data/d3/jquery.roundimage.js"></script>
 <script src="//d3js.org/d3.v4.min.js"></script>
-<!-- <script src="//d3js.org/d3.v3.min.js"></script> -->
 <script>
 
 var width = 1000,
@@ -53,8 +59,9 @@ var simulation = d3.forceSimulation()
 var links = [];
 var nodes;
 var data;
+var neighbours = [];
 
-var node_size = 30;
+var node_size = 40;
 
 d3.json("/data/films.json", function(error, json) {
   if (error) throw error;
@@ -65,6 +72,11 @@ d3.json("/data/films.json", function(error, json) {
 function draw(){
   
   nodes = createNodes(data);
+
+  /*
+    Create a side bar.
+    More interactivity.
+  */
 
   var link = svg.selectAll(".link")
       .data(links)
@@ -101,10 +113,15 @@ function draw(){
     .attr("id", function(d){ return d.name; })
     .attr("dx", function(d) { 
       if (d.type == "keyword") { return 15; } 
-      else { return 22; }
+      else if (d.type == "root") { return 20; }
+      else { return 40; }
      })
-    .attr("dy", 3)
-    .attr("display", function(d) { 
+    .attr("dy", function(d) { 
+      if (d.type == "keyword") { return 4; } 
+      else if (d.type == "film") { return 25; }
+      else if (d.type == "root") { return 4; }
+     })
+    .style("display", function(d) { 
       if (d.type == "root") { return "block"; } 
       return "none";
      })
@@ -115,22 +132,26 @@ function draw(){
 
   node.on("mouseover", function (d) {
     
-    var neighbours = [];
+    neighbours = [];
 
     link.style('stroke', function(l) {
       if (d === l.source || d === l.target){
-        if (d === l.source) { neighbours.push(l.target) } else { neighbours.push(l.source) }
+        if (d === l.source) { neighbours.push(l.target); } else { neighbours.push(l.source); }
         return '#A5A5A5';
       } else {
         return '#EDEDED';
       } 
     });
 
-    // neighbours.forEach( function(element, index) {
-    //     if (element.name == d.name ){
-    //       document.getElementById(d.name).style.display = "block";
-    //     }
-    // })
+    node.attr("visibility", function(n) { 
+      if (d.type == "film" && neighbours.containNode(n)) { 
+        try {
+          node.select("#" + n.name).style("display", "block");
+        } catch(e) {
+          console.log(n);
+        }
+      }
+    })
 
     d3.select(this).select('text')
       .transition()
@@ -140,6 +161,10 @@ function draw(){
 
     .style("font-size","15px")
     .style("display", "block")
+    // .attr("dx", function(d) { 
+    //   if (d.type == "keyword") { return 15; } 
+    //   else { return 30; }
+    //  })
 
   });
 
@@ -148,19 +173,43 @@ function draw(){
     link.style("stroke", function(d) { 
         if (d.type === "light") { return '#EDEDED';}
         else { return '#A5A5A5';}
+    });
+
+    node.attr("visibility", function(n) { 
+      if (n.type == "keyword" && neighbours.containNode(n)) { 
+        
+        try {
+          node.select("#" + n.name).style("display", "none");
+        } catch(e) {
+          console.log(n);
+        }
+        
+      }
     })
 
     d3.select(this).select('text')
       .transition()
       .text(function(d){ return d.name; })
       .style("font-size","12px")
-      .style("display", function(d) { 
-        if (d.type == "keyword") { return "none"; } 
-       })
+      .style("display", "none")
+      // .attr("dx", function(d) { 
+      //   if (d.type == "keyword") { return 20; } 
+      //   else { return 22; }
+      //  })
+
   })
 
+  node.on("click", function(d){
+    if (d.url) {
+      window.open(d.url);
+    }
+  });
 
   node.append("image")
+      .attr("class", function(d) { 
+        if (d.type == "film") { return 'film'; } 
+        else { return 'keyword'; }
+       })
       .attr("xlink:href", function(d) { 
         if (d.type == "film") { return 'http://labocine.com/stills/movie_stills/' + d.id + '.jpg'; } 
         else { return '/data/circle.png'; }
@@ -186,7 +235,9 @@ function draw(){
         else { return 1; }
        })
       .on("mouseover", function (d) {
-        //d3.select(this).attr("width", 40)
+        // d3.select(this)
+        // .transition()
+        // .attr("width", 40)
 
       })
       .on("mouseout", function (d) {
@@ -197,11 +248,7 @@ function draw(){
         //   })
       })
 
-  node.on("click", function(d){
-    if (d.url) {
-      window.open(d.url);
-    }
-  });
+  $('.film').roundImage();
 
   simulation
       .nodes(nodes)
@@ -225,8 +272,16 @@ function draw(){
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
 
-    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    //node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
+    node.attr("transform", function(d) { 
+
+      if (d.type == "film") {
+        return "translate(" + (d.x - 20) + "," + (d.y - 20) + ")"; 
+      } else {
+        return "translate(" + d.x + "," + d.y + ")"; 
+      }
+    });
   }
 
 }
@@ -276,7 +331,7 @@ function createNodes(json){
 
       let _keywords = films[i].tags.split(", ");
       _keywords.forEach( function(element, index) {
-        
+
         let node = {
           "id" : _nodes.length,
           "name": element,
