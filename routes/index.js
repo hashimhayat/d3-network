@@ -11,5 +11,10 @@ router.get('/black', function(req, res, next) {
   res.render('black', { title: 'Network V2.0' });
 });
 
+/* GET home page. */
+router.get('/split', function(req, res, next) {
+  res.render('image', { title: 'Network V2.0' });
+});
+
 
 module.exports = router;
