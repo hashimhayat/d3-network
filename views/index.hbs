@@ -2,9 +2,28 @@
 <meta charset="utf-8">
 <style>
 
+.bg:after {
+    content : "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: url("/data/indigenousScience.jpg"); 
+
+     Center and scale the image nicely 
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+
+    width: 100%;
+    height: 100%;
+    opacity : 0.25;
+    z-index: -1;
+}
+
 .network {
-  width : 100%;
-  height: 100%;
+  width : 80%;
+  height: 80%;
 }
 
 .link {
@@ -20,21 +39,22 @@
   cursor: pointer;
 }
 
-
 .logo {
   border-radius: 50%;
 }
 
 </style>
 <body>
-  <div class="network"> </div>
+  
+  <div class="network bg"> </div>
+
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="/data/d3/jquery.roundimage.js"></script>
 <script src="//d3js.org/d3.v4.min.js"></script>
 <script>
 
-var width = 1000,
-    height = 800
+var width = $(window).width() - 150,
+    height = $(window).height() - 100
 
 var svg = d3.select(".network").append("svg")
     .attr("class", "main")
@@ -47,14 +67,14 @@ var simulation = d3.forceSimulation()
     .force("link", d3.forceLink().distance(function(d) {
       if (d.type == "keyword") { return 50; } else {return 120; }
      }))
-    .force("charge", d3.forceManyBody().strength(-10).distanceMax(120).distanceMin(85))
+    .force("charge", d3.forceManyBody().strength(-10).distanceMax(100).distanceMin(60))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    .force('radial', d3.forceRadial(function(d) {
-        if (d.type == "keyword") { return 2 * 100 } 
-        else if (d.type == "film") {return 1 * 100}
-        else {return 0.5 * 100 }
-    }, width / 2, height / 2))
-    .force('collide', d3.forceCollide().radius(35));
+    // .force('radial', d3.forceRadial(function(d) {
+    //     if (d.type == "keyword") { return 2 * 100 } 
+    //     else if (d.type == "film") {return 1 * 100}
+    //     else {return 0.5 * 100 }
+    // }, width / 2, height / 2))
+    .force('collide', d3.forceCollide().radius(30));
 
 var links = [];
 var nodes;
@@ -73,18 +93,13 @@ function draw(){
   
   nodes = createNodes(data);
 
-  /*
-    Create a side bar.
-    More interactivity.
-  */
-
   var link = svg.selectAll(".link")
       .data(links)
       // 
       .enter().append("line")
       .attr("class", "link")
       .style("stroke", function(d) { 
-        if (d.type === "light") { return '#EDEDED';}
+        if (d.type === "light") { return '#D3D3DB';}
         else {return '#A5A5A5';}
       })
       .style("stroke-width", function(d) { 
@@ -114,7 +129,7 @@ function draw(){
     .attr("dx", function(d) { 
       if (d.type == "keyword") { return 15; } 
       else if (d.type == "root") { return 20; }
-      else { return 50; }
+      else { return 45; }
      })
     .attr("dy", function(d) { 
       if (d.type == "keyword") { return 4; } 
@@ -139,7 +154,7 @@ function draw(){
         if (d === l.source) { neighbours.push(l.target); } else { neighbours.push(l.source); }
         return '#A5A5A5';
       } else {
-        return '#EDEDED';
+        return '#D3D3DB';
       } 
     });
 
@@ -161,17 +176,14 @@ function draw(){
 
     .style("font-size","15px")
     .style("display", "block")
-    // .attr("dx", function(d) { 
-    //   if (d.type == "keyword") { return 15; } 
-    //   else { return 30; }
-    //  })
+
 
   });
 
   node.on("mouseout", function (d) {
 
     link.style("stroke", function(d) { 
-        if (d.type === "light") { return '#EDEDED';}
+        if (d.type === "light") { return '#D3D3DB';}
         else { return '#A5A5A5';}
     });
 
@@ -190,14 +202,15 @@ function draw(){
     d3.select(this).select('text')
       .transition()
       .text(function(d){ return d.name; })
-      .style("font-size","12px")
+      .style("font-size", function(d) {
+        
+        if (d.type == "root") {return "15px"}
+        return "12px";
+
+      })
       .style("display", function(d) {
         if (d.type != "root") { return "none" }
       })
-      // .attr("dx", function(d) { 
-      //   if (d.type == "keyword") { return 20; } 
-      //   else { return 22; }
-      //  })
 
   })
 
@@ -237,17 +250,19 @@ function draw(){
         else { return 1; }
        })
       .on("mouseover", function (d) {
-        // d3.select(this)
-        // .transition()
-        // .attr("width", 40)
+        
+        d3.select(this)
+        .transition()
+        .attr("opacity", 1)
 
       })
       .on("mouseout", function (d) {
-        // d3.select(this)
-        //   .attr("width", function(d) { 
-        //     if (d.type == "keyword") { return node_size/2; } 
-        //     else { return node_size; }
-        //   })
+        d3.select(this)
+        .transition()
+        .attr("opacity", function(d) { 
+          if (d.type == "keyword") { return 0.2; } 
+          else { return 1; }
+        })
       })
 
   $('.film').roundImage();
@@ -273,8 +288,6 @@ function draw(){
     node
         .attr("cx", function(d) { return d.x; })
         .attr("cy", function(d) { return d.y; });
-
-    //node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 
     node.attr("transform", function(d) { 
 
@@ -311,7 +324,7 @@ function createNodes(json){
         "name": films[i].title,
         "type": "film",
         "keywords": films[i].tags.split(", "),
-        "url": films[i].url
+        "url": "https://www.labocine.com/film/" + films[i].id
       };
       
       _nodes.push(node);
@@ -366,22 +379,6 @@ function createNodes(json){
     }
 
     return _nodes;
-}
-
-function showNeighbors(node){
-
-  var index = nodes.indexOf(node);
-
-  for (var i = 0; i < links.length; i++){
-
-    links[i].type = "light";
-
-    if (links[i].source === index || links.target === index){
-      links[i].type = "dark";
-    } 
-  }
-
-  // draw();
 }
 
 Array.prototype.containNode = function(node){
