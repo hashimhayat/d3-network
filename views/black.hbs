@@ -2,34 +2,8 @@
 <meta charset="utf-8">
 <style>
 
-
-.underlay{
-  position:absolute;
-  bottom:0; left:0; top:0; right:0;
-  margin:auto;
-  height:0; width:0;
-  background:#333;
-  opacity:0;
-  transition:1s all;
-}
-
-.bg:after {
-    content : "";
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    background-image: url("/data/indigenousScience.jpg"); 
-
-     Center and scale the image nicely 
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-
-    width: 100%;
-    height: 100%;
-    opacity : 0.25;
-    z-index: -1;
+body {
+  background-color: black;
 }
 
 .network {
@@ -50,11 +24,11 @@
   cursor: pointer;
 }
 
-.root {
+.root, .keyword {
   -webkit-transition: -webkit-transform .8s ease-in-out;
   transition: transform .8s ease-in-out;
 }
-.root:hover {
+.root:hover, .keyword:hover {
   -webkit-transform: rotate(360deg);
   transform: rotate(360deg);
 }
@@ -115,8 +89,8 @@ function draw(){
       .enter().append("line")
       .attr("class", "link")
       .style("stroke", function(d) { 
-        if (d.type === "light") { return '#D3D3DB';}
-        else {return '#A5A5A5';}
+        if (d.type === "light") { return '#53535b';}
+        else {return '#D3D3DB';}
       })
       .style("stroke-width", function(d) { 
         if (d.type == "light") { return 1; } 
@@ -160,8 +134,84 @@ function draw(){
       if (d.type == "root") { return 15; } 
      })
     .text(function(d)  { return d.name })
+    .style("fill", "white")
 
-   node.append("image")
+  node.on("mouseover", function (d) {
+    
+    neighbours = [];
+
+    link.style('stroke', function(l) {
+      if (d === l.source || d === l.target){
+        if (d === l.source) { neighbours.push(l.target); } else { neighbours.push(l.source); }
+        return '#D3D3DB';
+      } else {
+        return '#53535b';
+      } 
+    });
+
+    node.attr("visibility", function(n) { 
+      if (d.type == "film" && neighbours.containNode(n)) { 
+        try {
+          node.select("#" + n.name).style("display", "block");
+        } catch(e) {
+          console.log(n);
+        }
+      }
+    })
+
+    d3.select(this).select('text')
+      .transition()
+      .text(function(d){
+        return d.name;
+    })
+
+    .style("font-size","15px")
+    .style("display", "block")
+
+
+  });
+
+  node.on("mouseout", function (d) {
+
+    link.style("stroke", function(d) { 
+        if (d.type === "light") { return '#53535b';}
+        else { return '#D3D3DB';}
+    });
+
+    node.attr("visibility", function(n) { 
+      if (n.type == "keyword" && neighbours.containNode(n)) { 
+        
+        try {
+          node.select("#" + n.name).style("display", "none");
+        } catch(e) {
+          console.log(n);
+        }
+        
+      }
+    })
+
+    d3.select(this).select('text')
+      .transition()
+      .text(function(d){ return d.name; })
+      .style("font-size", function(d) {
+        
+        if (d.type == "root") {return "15px"}
+        return "12px";
+
+      })
+      .style("display", function(d) {
+        if (d.type != "root") { return "none" }
+      })
+
+  })
+
+  node.on("click", function(d){
+    if (d.url) {
+      window.open(d.url);
+    }
+  });
+
+  node.append("image")
       .attr("class", function(d) { 
         if (d.type == "film") { return 'film'; } 
         else if (d.type == "root") { return 'root'; }
@@ -208,82 +258,6 @@ function draw(){
       })
 
   $('.film').roundImage();
-
-  node.on("mouseover", function (d) {
-    
-    neighbours = [];
-
-    link.style('stroke', function(l) {
-      if (d === l.source || d === l.target){
-        if (d === l.source) { neighbours.push(l.target); } else { neighbours.push(l.source); }
-        return '#A5A5A5';
-      } else {
-        return '#D3D3DB';
-      } 
-    });
-
-    node.attr("visibility", function(n) { 
-      if (d.type == "film" && neighbours.containNode(n)) { 
-        try {
-          node.select("#" + n.name).style("display", "block");
-        } catch(e) {
-          console.log(n);
-        }
-      }
-    })
-
-    d3.select(this).select('text')
-      .transition()
-      .text(function(d){
-        return d.name;
-    })
-
-    .style("font-size","15px")
-    .style("display", "block")
-
-
-  });
-
-  node.on("mouseout", function (d) {
-
-    link.style("stroke", function(d) { 
-        if (d.type === "light") { return '#D3D3DB';}
-        else { return '#A5A5A5';}
-    });
-
-    node.attr("visibility", function(n) { 
-      if (n.type == "keyword" && neighbours.containNode(n)) { 
-        
-        try {
-          node.select("#" + n.name).style("display", "none");
-        } catch(e) {
-          console.log(n);
-        }
-        
-      }
-    })
-
-    d3.select(this).select('text')
-      .transition()
-      .text(function(d){ return d.name; })
-      .style("font-size", function(d) {
-        
-        if (d.type == "root") {return "15px"}
-        return "12px";
-
-      })
-      .style("display", function(d) {
-        if (d.type != "root") { return "none" }
-      })
-
-  })
-
-  node.on("click", function(d){
-    if (d.url) {
-      window.open(d.url);
-    }
-  });
-
 
   simulation
       .nodes(nodes)
