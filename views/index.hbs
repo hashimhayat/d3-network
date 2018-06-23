@@ -2,7 +2,6 @@
 <meta charset="utf-8">
 <style>
 
-
 .underlay{
   position:absolute;
   bottom:0; left:0; top:0; right:0;
@@ -28,8 +27,10 @@
 
     width: 100%;
     height: 100%;
-    opacity : 0.25;
+    opacity : 0.4;
     z-index: -1;
+    -webkit-filter: blur(4px);
+    filter: blur(4px);
 }
 
 .network {
@@ -43,7 +44,8 @@
 
 .node text {
   pointer-events: none;
-  font: 12px sans-serif;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
 }
 
 .node:hover {
@@ -54,17 +56,36 @@
   -webkit-transition: -webkit-transform .8s ease-in-out;
   transition: transform .8s ease-in-out;
 }
+
 .root:hover {
   -webkit-transform: rotate(360deg);
   transform: rotate(360deg);
 }
 
+.issue_name {
+  float : right;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.film_name {
+  float : left;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 19px;
+  font-weight: normal;
+}
+
 </style>
 <body>
   
-  <div class="network bg"> </div>
+<div class="network bg"> </div>
+<div class="film_name"> </div>
+<div class="issue_name"> Indigenous Science </div>
 
+<link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="/data/d3/jquery.roundimage.js"></script>
 <script src="//d3js.org/d3.v4.min.js"></script>
 <script>
@@ -80,24 +101,19 @@ var svg = d3.select(".network").append("svg")
 var simulation = d3.forceSimulation()
 
     .force("link", d3.forceLink().id(function(d) { return d.id }))
-    .force("link", d3.forceLink().distance(function(d) {
-      if (d.type == "keyword") { return 50; } else {return 120; }
-     }))
-    .force("charge", d3.forceManyBody().strength(-10).distanceMax(100).distanceMin(60))
+    .force("charge", d3.forceManyBody().distanceMax(200).distanceMin(80))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    // .force('radial', d3.forceRadial(function(d) {
-    //     if (d.type == "keyword") { return 2 * 100 } 
-    //     else if (d.type == "film") {return 1 * 100}
-    //     else {return 0.5 * 100 }
-    // }, width / 2, height / 2))
-    .force('collide', d3.forceCollide().radius(30));
+    .force('collide', d3.forceCollide().radius(28));
 
 var links = [];
 var nodes;
 var data;
 var neighbours = [];
 
-var node_size = 50;
+var node_size = 40;
+
+var LIGHT_COLOR = '#b2b2b2';
+var DARK_COLOR = '#696e66';
 
 d3.json("/data/films.json", function(error, json) {
   if (error) throw error;
@@ -115,12 +131,12 @@ function draw(){
       .enter().append("line")
       .attr("class", "link")
       .style("stroke", function(d) { 
-        if (d.type === "light") { return '#D3D3DB';}
-        else {return '#A5A5A5';}
+        if (d.type === "light") { return LIGHT_COLOR;}
+        else {return DARK_COLOR;}
       })
       .style("stroke-width", function(d) { 
         if (d.type == "light") { return 1; } 
-        else { return 2; }
+        else { return 1.5; }
       })
 
   link.exit().remove()
@@ -139,17 +155,19 @@ function draw(){
 
   node.exit().remove()
 
-  node.append("text")
+  var node_text = node.append("text")
     .attr("class", "node_text")
-    .attr("id", function(d){ return d.name; })
+    .attr("id", function(d){ 
+      return d.name.replaceAll(" ","-"); }
+    )
     .attr("dx", function(d) { 
       if (d.type == "keyword") { return 15; } 
       else if (d.type == "root") { return 25; }
-      else { return 45; }
+      else { return 40; }
      })
     .attr("dy", function(d) { 
       if (d.type == "keyword") { return 4; } 
-      else if (d.type == "film") { return 30; }
+      else if (d.type == "film") { return 25; }
       else if (d.type == "root") { return 4; }
      })
     .style("display", function(d) { 
@@ -216,20 +234,42 @@ function draw(){
     link.style('stroke', function(l) {
       if (d === l.source || d === l.target){
         if (d === l.source) { neighbours.push(l.target); } else { neighbours.push(l.source); }
-        return '#A5A5A5';
+        return DARK_COLOR;
       } else {
-        return '#D3D3DB';
+        return LIGHT_COLOR;
       } 
     });
 
+    console.log(neighbours)
+
+    link.style("stroke-width", function(l) {
+      if (d === l.source || d === l.target){
+
+      } else {
+        return 0;
+      }
+    })
+
     node.attr("visibility", function(n) { 
-      if (d.type == "film" && neighbours.containNode(n)) { 
+      if (neighbours.hasNode(n)) { 
         try {
-          node.select("#" + n.name).style("display", "block");
+          //node.select("#" + n.name.replaceAll(" ","-")).style("display", "block");
+          $("#" + n.name.replaceAll(" ","-")).fadeIn('slow')
         } catch(e) {
           console.log(n);
         }
+      } 
+    })
+
+    node.attr("opacity", function(n) {
+      if (d.type != "root"){
+        if (n.type == "root" || d.type == "keyword" || n.name == d.name || neighbours.hasNode(n)){
+          return 1;
+        } else {
+          return 0.1;
+        }
       }
+  
     })
 
     d3.select(this).select('text')
@@ -241,26 +281,39 @@ function draw(){
     .style("font-size","15px")
     .style("display", "block")
 
-
+    if (d.type == "film") {
+      $('.film_name').html(d.name);
+      $('.film_name').fadeIn('slow');
+    }
+    
   });
 
   node.on("mouseout", function (d) {
 
     link.style("stroke", function(d) { 
-        if (d.type === "light") { return '#D3D3DB';}
-        else { return '#A5A5A5';}
+        if (d.type === "light") { return LIGHT_COLOR;}
+        else { return DARK_COLOR;}
     });
 
+    link.style("stroke-width", function(l) {
+      if (d.type == "light") { return 1; } 
+      else { return 1.5; }
+    })
+
     node.attr("visibility", function(n) { 
-      if (n.type == "keyword" && neighbours.containNode(n)) { 
-        
+      if (neighbours.hasNode(n)) { 
         try {
-          node.select("#" + n.name).style("display", "none");
+          node.select("#" + n.name.replaceAll(" ","-")).style("display", "none");
+          $("#" + n.name.replaceAll(" ","-")).fadeOut('slow')
         } catch(e) {
           console.log(n);
         }
-        
       }
+    })
+
+    node.attr("opacity", function(n) {
+        if (n.type == "keyword") { return 0.4; } 
+        else { return 1; }
     })
 
     d3.select(this).select('text')
@@ -275,6 +328,8 @@ function draw(){
       .style("display", function(d) {
         if (d.type != "root") { return "none" }
       })
+
+     $('.film_name').fadeOut('slow')
 
   })
 
@@ -310,7 +365,7 @@ function draw(){
     node.attr("transform", function(d) { 
 
       if (d.type == "film") {
-        return "translate(" + (d.x - 25) + "," + (d.y - 25) + ")"; 
+        return "translate(" + (d.x - (node_size/2)) + "," + (d.y - (node_size/2)) + ")"; 
       } else {
         return "translate(" + d.x + "," + d.y + ")"; 
       }
@@ -336,12 +391,27 @@ function createNodes(json){
 
     for (var i = 0; i < films.length; i++){
       
+      // Cleaning tags
+      var tags = films[i].tags.split(", ");
+      var correct_tags = [];
+      tags.forEach( function(element, index) {
+        element.trim();
+        if (element == ""){
+
+        } else if (element.includes(",")){
+          element.replace(",", "");
+          correct_tags.push(element);
+        } else {
+          correct_tags.push(element);
+        }
+      });
+
       // Creating and appending Films 
       let node = {
         "id": _nodes.length,
         "name": films[i].title,
         "type": "film",
-        "keywords": films[i].tags.split(", "),
+        "keywords": correct_tags,
         "url": "https://www.labocine.com/film/" + films[i].id
       };
       
@@ -362,8 +432,21 @@ function createNodes(json){
     // Creating and appending Keywords
     for (var i = 0; i < films.length; i++){
 
-      let _keywords = films[i].tags.split(", ");
-      _keywords.forEach( function(element, index) {
+      var tags = films[i].tags.split(", ");
+      var correct_tags = [];
+      tags.forEach( function(element, index) {
+        element.trim();
+        if (element == ""){
+
+        } else if (element.includes(",")){
+          element.replace(",", "");
+          correct_tags.push(element);
+        } else {
+          correct_tags.push(element);
+        }
+      });
+      
+      correct_tags.forEach( function(element, index) {
 
         let node = {
           "id" : _nodes.length,
@@ -399,6 +482,17 @@ function createNodes(json){
     return _nodes;
 }
 
+Array.prototype.hasNode = function(node){
+
+  for (var i = 0; i < this.length; i++){
+
+    if (this[i].name == node.name){
+      return true;
+    }
+  }
+  return false;
+}
+
 Array.prototype.containNode = function(node){
   
   for (var i = 0; i < this.length; i++){
@@ -407,6 +501,11 @@ Array.prototype.containNode = function(node){
     }
   }
   return false;
+};
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
 };
 
 function nodesForKeyword(_nodes, keyword){
