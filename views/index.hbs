@@ -228,63 +228,8 @@ function draw(){
   $('.film').roundImage();
 
   node.on("mouseover", function (d) {
-    touchStart(d);
-  });
-
-  node.on("mouseout", function (d) {
-    touchEnd(d);
-  })
-
-  node.on("touchstart", function (d) {
-    touchStart(d);
-  });
-
-  node.on("touchend", function (d) {
-    touchEnd(d);
-  })
-
-
-  node.on("click", function(d){
-    if (d.url) {
-      window.open(d.url);
-    }
-  });
-
-
-  simulation
-      .nodes(nodes)
-      .on("tick", ticked);
-
-  simulation.force("link")
-      .links(links);
-
-  function ticked() {
-
-    nodes[0].x = width / 2;
-    nodes[0].y = height / 2;
-
-    link
-        .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-
-    node
-        .attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
-
-    node.attr("transform", function(d) { 
-
-      if (d.type == "film") {
-        return "translate(" + (d.x - (node_size/2)) + "," + (d.y - (node_size/2)) + ")"; 
-      } else {
-        return "translate(" + d.x + "," + d.y + ")"; 
-      }
-    });
-  }
-
-  function touchStart(d){
-        neighbours = [];
+    
+    neighbours = [];
 
     link.style('stroke', function(l) {
       if (d === l.source || d === l.target){
@@ -294,8 +239,6 @@ function draw(){
         return LIGHT_COLOR;
       } 
     });
-
-    console.log(neighbours)
 
     link.style("stroke-width", function(l) {
       if (d === l.source || d === l.target){
@@ -339,9 +282,10 @@ function draw(){
     $('.film_name').html(d.name);
     $('.film_name').fadeIn('slow');
     
-  }
+  });
 
-  function touchEnd(d){
+  node.on("mouseout", function (d) {
+
     link.style("stroke", function(d) { 
         if (d.type === "light") { return LIGHT_COLOR;}
         else { return DARK_COLOR;}
@@ -382,6 +326,46 @@ function draw(){
       })
 
      $('.film_name').fadeOut('slow')
+
+  })
+
+  node.on("click", function(d){
+    if (d.url) {
+      window.open(d.url);
+    }
+  });
+
+
+  simulation
+      .nodes(nodes)
+      .on("tick", ticked);
+
+  simulation.force("link")
+      .links(links);
+
+  function ticked() {
+
+    nodes[0].x = width / 2;
+    nodes[0].y = height / 2;
+
+    link
+        .attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node
+        .attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+
+    node.attr("transform", function(d) { 
+
+      if (d.type == "film") {
+        return "translate(" + (d.x - (node_size/2)) + "," + (d.y - (node_size/2)) + ")"; 
+      } else {
+        return "translate(" + d.x + "," + d.y + ")"; 
+      }
+    });
   }
 
 }
