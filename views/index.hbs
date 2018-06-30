@@ -2,6 +2,10 @@
 <meta charset="utf-8">
 <style>
 
+.main-body {
+  padding: 50px;
+}
+
 .underlay{
   position:absolute;
   bottom:0; left:0; top:0; right:0;
@@ -79,15 +83,21 @@
 </style>
 <body>
   
-<div class="network bg"> </div>
-<div class="film_name"> </div>
-<div class="issue_name"> Indigenous Science </div>
+<div class="main-body">
+
+  <div class="network bg"> </div>
+  <div class="film_name"> </div>
+  <div class="issue_name"> Indigenous Science </div>
+
+</div>
+
 
 <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="/data/d3/jquery.roundimage.js"></script>
 <script src="//d3js.org/d3.v4.min.js"></script>
+
 <script>
 
 var width = $(window).width() - 150,
@@ -158,7 +168,7 @@ function draw(){
   var node_text = node.append("text")
     .attr("class", "node_text")
     .attr("id", function(d){ 
-      return d.name.replaceAll(" ","-"); }
+      return replaceAll(d.name," ","-"); }
     )
     .attr("dx", function(d) { 
       if (d.type == "keyword") { return 15; } 
@@ -186,8 +196,8 @@ function draw(){
         else { return 'keyword'; }
        })
       .attr("xlink:href", function(d) { 
-        if (d.type == "film") { return 'http://labocine.com/stills/movie_stills/' + d.id + '.jpg'; } 
-        else { return '/data/circle.png'; }
+        if (d.type == "film") { return 'http://labocine.com/stills/movie_stills/' + d.img + '.jpg'; } 
+        else { return '/assets/img/circle.png'; }
        })
       .attr("x", function(d) { 
         if (d.type == "keyword") { return -(node_size/6); } 
@@ -249,10 +259,10 @@ function draw(){
     })
 
     node.attr("visibility", function(n) { 
-      if (neighbours.hasNode(n)) { 
+      if (hasNode(neighbours,n)) { 
         try {
           //node.select("#" + n.name.replaceAll(" ","-")).style("display", "block");
-          $("#" + n.name.replaceAll(" ","-")).fadeIn('slow')
+          $("#" + replaceAll(n.name," ","-")).fadeIn('slow')
         } catch(e) {
           console.log(n);
         }
@@ -261,7 +271,7 @@ function draw(){
 
     node.attr("opacity", function(n) {
       if (d.type != "root"){
-        if (n.type == "root" || d.type == "keyword" || n.name == d.name || neighbours.hasNode(n)){
+        if (n.type == "root" || d.type == "keyword" || n.name == d.name || hasNode(neighbours,n)){
           return 1;
         } else {
           return 0.1;
@@ -297,10 +307,10 @@ function draw(){
     })
 
     node.attr("visibility", function(n) { 
-      if (neighbours.hasNode(n)) { 
+      if (hasNode(neighbours,n)) { 
         try {
-          node.select("#" + n.name.replaceAll(" ","-")).style("display", "none");
-          $("#" + n.name.replaceAll(" ","-")).fadeOut('slow')
+          node.select("#" + replaceAll(n.name," ","-")).style("display", "none");
+          $("#" + replaceAll(n.name," ","-")).fadeOut('slow')
         } catch(e) {
           console.log(n);
         }
@@ -350,19 +360,44 @@ function draw(){
 
     link
         .attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
+        .attr("y1", function(d) { 
+          if (d.source.y < 30){
+            return Math.floor(Math.random() * 40) + 30  
+          }
+          return d.source.y; 
+        })
         .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+        .attr("y2", function(d) { 
+
+          if (d.target.y < 30){
+            return Math.floor(Math.random() * 40) + 30  
+          }
+          return d.target.y; 
+        });
 
     node
-        .attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
+        .attr("cx", function(d) { 
+          // console.log(d.x)
+          return d.x; 
+        })
+        .attr("cy", function(d) { 
+          if (d.y < 30){
+            return Math.floor(Math.random() * 40) + 30  
+          }
+          return d.y; 
+        });
 
     node.attr("transform", function(d) { 
 
       if (d.type == "film") {
+        if (d.y < 30){
+          return "translate(" + (d.x - (node_size/2)) + "," + (Math.floor(Math.random() * 40) + 30 - (node_size/2)) + ")";
+        }
         return "translate(" + (d.x - (node_size/2)) + "," + (d.y - (node_size/2)) + ")"; 
       } else {
+        if (d.y < 30){
+          return "translate(" + d.x + "," + Math.floor(Math.random() * 40) + 30 + ")"; 
+        }
         return "translate(" + d.x + "," + d.y + ")"; 
       }
     });
@@ -407,7 +442,8 @@ function createNodes(json){
         "id": _nodes.length,
         "name": films[i].title,
         "type": "film",
-        "keywords": correct_tags,
+        "keywords": correct_tags,        
+        "img" : films[i].id,
         "url": "https://www.labocine.com/film/" + films[i].id
       };
       
@@ -450,7 +486,7 @@ function createNodes(json){
           "type": "keyword"
         };
 
-        var keyword_node_idx = _nodes.containNode(node);
+        var keyword_node_idx = containNode(_nodes, node);
         
         if (!keyword_node_idx){
           _nodes.push(node);
@@ -478,29 +514,29 @@ function createNodes(json){
     return _nodes;
 }
 
-Array.prototype.hasNode = function(node){
+function hasNode(arr, node){
 
-  for (var i = 0; i < this.length; i++){
+  for (var i = 0; i < arr.length; i++){
 
-    if (this[i].name == node.name){
+    if (arr[i].name == node.name){
       return true;
     }
   }
   return false;
 }
 
-Array.prototype.containNode = function(node){
+function containNode(arr, node){
   
-  for (var i = 0; i < this.length; i++){
-    if (this[i].type == "keyword" && this[i].name == node.name){
+  for (var i = 0; i < arr.length; i++){
+    if (arr[i].type == "keyword" && arr[i].name == node.name){
       return i;
     }
   }
   return false;
 };
 
-String.prototype.replaceAll = function(search, replacement) {
-    var target = this;
+function replaceAll(str, search, replacement) {
+    var target = str;
     return target.replace(new RegExp(search, 'g'), replacement);
 };
 

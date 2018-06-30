@@ -25,22 +25,22 @@
   z-index:9;
   cursor: ew-resize;
   /*set the appearance of the slider:*/
-  width: 40px;
-  height: 40px;
+  width: 10px;
+  height: 300px;
   background-color: #D3D3DB;
   opacity: 0.7;
-  border-radius: 50%;
+  border-radius: 0%;
 }
 .img-comp-slider_y {
   position: absolute;
   z-index:9;
   cursor: ew-resize;
   /*set the appearance of the slider:*/
-  width: 40px;
-  height: 40px;
+  width: 500px;
+  height: 10px;
   background-color: #2196F3;
   opacity: 0.7;
-  border-radius: 50%;
+  border-radius: 0%;
 }
 .compare_x {
   -webkit-filter: saturate(7); 
@@ -92,7 +92,7 @@ function initComparisons() {
 
     /*position the slice(start: int, end: int)ider_y in the middle:*/
     slider_y.style.top = (h / 2) - (slider_y.offsetHeight / 2) + "px";
-    slider_y.style.left = (w) - (slider_y.offsetWidth / 2) + "px";
+    slider_y.style.left = (w / 2) - (slider_y.offsetWidth / 2) + "px";
 
     /*execute a function when the mouse button is pressed:*/
     slider_x.addEventListener("mousedown", slideReady_x);
@@ -113,6 +113,7 @@ function initComparisons() {
     window.addEventListener("touchstop", slideFinish);
     
     function slideReady_x(e) {
+      console.log('slideReady_x')
       /*prevent any other actions that may occur when moving over the image:*/
       e.preventDefault();
       /*the slider is now clicked and ready to move:*/
@@ -122,10 +123,11 @@ function initComparisons() {
       window.addEventListener("touchmove", slideMove_x);
     }
     function slideReady_y(e) {
+      console.log('slideReady_y')
       /*prevent any other actions that may occur when moving over the image:*/
       e.preventDefault();
       /*the slider is now clicked and ready to move:*/
-      clicked = 1;
+      clicked = 2;
       /*execute a function when the slider is moved:*/
       window.addEventListener("mousemove", slideMove_y);
       window.addEventListener("touchmove", slideMove_y);
@@ -137,7 +139,7 @@ function initComparisons() {
     function slideMove_x(e) {
       var pos;
       /*if the slider is no longer clicked, exit this function:*/
-      if (clicked == 0) return false;
+      if (clicked == 0 || clicked == 2) return false;
       /*get the cursor's x position:*/
       pos = getCursorPos_x(e)
       /*prevent the slider from being positioned outside the image:*/
@@ -149,7 +151,7 @@ function initComparisons() {
     function slideMove_y(e) {
       var pos;
       /*if the slider is no longer clicked, exit this function:*/
-      if (clicked == 0) return false;
+      if (clicked == 0 || clicked == 1) return false;
       /*get the cursor's x position:*/
       pos = getCursorPos_y(e)
       /*prevent the slider from being positioned outside the image:*/
@@ -203,6 +205,7 @@ function initComparisons() {
 <p>Click and slide the blue slider to compare two images:</p>
 
 <div class="img-comp-container">
+
   <div class="img-comp-img">
     <img src="/data/indigenousScience.jpg" width="500" height="300">
   </div>
@@ -211,12 +214,10 @@ function initComparisons() {
     <img class="compare_x" src="/data/indigenousScience.jpg" width="500" height="300">
   </div>
 
-    <div class="img-comp-img img-comp-overlay">
-    <img class="compare_y" src="/data/indigenousScience.jpg" width="500" height="300">
-  </div>
-
 </div>
 
+
+</div>
 <script>
 /*Execute a function that will execute an image compare function for each element with the img-comp-overlay class:*/
 initComparisons();
